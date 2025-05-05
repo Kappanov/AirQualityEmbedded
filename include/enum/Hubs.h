@@ -3,7 +3,10 @@
 
 #include <cstdint>
 
-enum Hub : int8_t {
+#define MAX_HUBS 2
+
+enum Hub : int8_t
+{
 	MAIN_HUB,
 	SCANNER_HUB
 };

@@ -2,19 +2,20 @@
 #include <ctime>
 
 AirQualityModule::AirQualityModule(
-	DHTSensor* dhtSensor, 
-	MQ135Sensor* mq135sensor, 
-	MQ5Sensor* mq5sensor, 
-	MQ7Sensor* mq7sensor)
-: dhtSensor(dhtSensor), mq135sensor(mq135sensor), mq5sensor(mq5sensor), mq7sensor(mq7sensor) {}
+	DHTSensor *dhtSensor,
+	MQ135Sensor *mq135sensor,
+	MQ5Sensor *mq5sensor,
+	MQ7Sensor *mq7sensor)
+	: dhtSensor(dhtSensor), mq135sensor(mq135sensor), mq5sensor(mq5sensor), mq7sensor(mq7sensor) {}
 
-AirQuality AirQualityModule::getAirQuality() {
+AirQuality AirQualityModule::getAirQuality()
+{
 	AirQuality airQuality;
 
 	auto mq5data = mq5sensor->readSensor();
 	auto mq135data = mq135sensor->readSensor();
 	auto dhtData = dhtSensor->readSensor();
-	
+
 	airQuality.coPpm = mq7sensor->readSensor();
 	airQuality.benzenePpm = mq135data.benzene;
 	airQuality.co2Ppm = mq135data.co2;
@@ -27,10 +28,11 @@ AirQuality AirQualityModule::getAirQuality() {
 	return airQuality;
 }
 
-void AirQualityModule::onRisingEdge(Action callbackOnRisingEdge) {
+void AirQualityModule::onRisingEdge(Action callbackOnRisingEdge)
+{
 	mq7sensor->onRisingEdge(callbackOnRisingEdge);
 }
 
-AirQualityModule::~AirQualityModule() {
-	
+AirQualityModule::~AirQualityModule()
+{
 }
