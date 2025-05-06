@@ -165,3 +165,19 @@ int NetworkModule::disconnectFromAllHubs()
 	}
 	return 0;
 }
+
+void NetworkModule::changeToActiveMode()
+{
+	if (checkHubConnection(Hub::SCANNER_HUB))
+		return;
+
+	connectToHub(Hub::SCANNER_HUB);
+}
+
+void NetworkModule::changeToPassiveMode()
+{
+	if (!checkHubConnection(Hub::SCANNER_HUB))
+		return;
+
+	disconnectFromHub(Hub::SCANNER_HUB);
+}

@@ -9,7 +9,6 @@
 #include <data/AirQuality.h>
 #include <module/AirQualityModule.h>
 #include <enum/DeviceStatus.h>
-#include <data/EventActionList.h>
 #include <data/HubList.h>
 
 #define HOST "localhost"
@@ -27,7 +26,6 @@ private:
 	bool isWifiConnected;
 	HubList connectedHubs;
 	DeviceStatus status;
-	EventActionList eventActions;
 
 	int connectToAllHubs();
 	int disconnectFromAllHubs();
@@ -44,7 +42,8 @@ public:
 	HubList getConnectedHubs() const;
 	bool checkHubConnection(const Hub Hub);
 	void sendAirQualityData(const AirQuality airQualityData);
-
+	void changeToActiveMode();
+	void changeToPassiveMode();
 	void onRequest(const Hub hub, const char *request, const Action callback);
 };
 

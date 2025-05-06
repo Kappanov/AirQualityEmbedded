@@ -6,18 +6,22 @@
 #include <sensors/MQ5Sensor.h>
 #include <sensors/MQ7Sensor.h>
 
-#include <actions.h>
-
 #define WIFI_SSID "Nabat"
 #define WIFI_PASSWORD "Nabat1960"
 
-#define DHT_PIN 0
-#define MQ135_PIN 1
-#define MQ5_PIN 1
-#define MQ7_PIN 1
+#define DHT_PIN 5	// D5
+#define MQ135_PIN 2 // A0
+#define MQ5_PIN 2	// A0
+#define MQ7_PIN 2	// A0
+#define MUX_OUT 2	// A0
+#define MUX_IN1 20	// D1
+#define MUX_IN2 19	// D2
 
 NetworkModule *netModule;
 AirQualityModule *airQualityModule;
+
+void onActivate();
+void onPassive();
 
 void setup()
 {
@@ -28,7 +32,7 @@ void setup()
 	auto mq5 = new MQ5Sensor(MQ5_PIN);
 	auto mq7 = new MQ7Sensor(MQ7_PIN);
 
-	airQualityModule = new AirQualityModule(dht, mq135, mq5, mq7);
+	airQualityModule = new AirQualityModule(dht, mq135, mq5, mq7, MUX_IN1, MUX_IN2);
 
 	bool isMainHubConnected = netModule->checkHubConnection(Hub::MAIN_HUB);
 	bool isSensorHubConnected = netModule->checkHubConnection(Hub::SCANNER_HUB);
@@ -41,10 +45,10 @@ void setup()
 
 	if (isSensorHubConnected)
 	{
-		netModule->onRequest(Hub::SCANNER_HUB, "/", onRequestToGetData);
+		netModule->onRequest(Hub::SCANNER_HUB, "/", sendAirQuality);
 	}
 
-	airQualityModule->onRisingEdge(onAirQualityRisingEdge);
+	airQualityModule->onRisingEdge(sendAirQuality);
 }
 
 void loop()
@@ -63,4 +67,20 @@ int main()
 	}
 
 	return 0;
+}
+
+void onActivate()
+{
+	netModule->changeToActiveMode();
+}
+
+void onPassive()
+{
+	netModule->changeToPassiveMode();
+}
+
+void sendAirQuality()
+{
+	auto data = airQualityModule->getAirQuality();
+	netModule->sendAirQualityData(data);
 }
