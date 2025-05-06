@@ -6,5 +6,6 @@
 		"string_view": "cpp",
 		"ranges": "cpp",
 		"cstdint": "cpp"
-	}
+	},
+	"cSpell.words": ["IRAM"]
 }

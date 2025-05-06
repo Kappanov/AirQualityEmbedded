@@ -1,7 +1,4 @@
-#include <Arduino.h>
-
 #include <module/AirQualityModule.h>
-#include <ctime>
 
 AirQualityModule::AirQualityModule(
 	DHTSensor *dhtSensor,
@@ -13,6 +10,9 @@ AirQualityModule::AirQualityModule(
 {
 	pinMode(muxIn1, OUTPUT);
 	pinMode(muxIn2, OUTPUT);
+
+	sendingDataTimer.attach_ms(SENDING_DATA_INTERVAL_MS, callbackForSendingData);
+	status = DeviceStatus::ACTIVE;
 }
 
 AirQuality AirQualityModule::getAirQuality()
@@ -53,4 +53,24 @@ void AirQualityModule::changeMuxChanel(uint8_t chanel)
 {
 	digitalWrite(muxIn1, (chanel & 0x01) ? HIGH : LOW);
 	digitalWrite(muxIn2, (chanel & 0x02) ? HIGH : LOW);
+}
+
+void AirQualityModule::changeStatus(DeviceStatus newStatus)
+{
+	status = newStatus;
+
+	if (status == DeviceStatus::ACTIVE)
+		sendingDataTimer.attach_ms(SENDING_DATA_INTERVAL_MS, callbackForSendingData);
+	else if (status == DeviceStatus::PASSIVE)
+		sendingDataTimer.detach();
+}
+
+DeviceStatus AirQualityModule::getStatus()
+{
+	return status;
+}
+
+void AirQualityModule::onSendingData(Action callback)
+{
+	callbackForSendingData = callback;
 }

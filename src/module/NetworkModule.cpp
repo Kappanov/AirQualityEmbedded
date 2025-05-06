@@ -10,12 +10,12 @@ NetworkModule::NetworkModule(const char *SSID, const char *password)
 		return;
 	}
 
-	connectToAllHubs();
+	connectToHub();
 }
 
 NetworkModule::~NetworkModule()
 {
-	disconnectFromAllHubs();
+	disconnectFromHub();
 	Serial.println("NetworkModule deleted");
 }
 
@@ -40,33 +40,9 @@ bool NetworkModule::checkWifiConnection()
 	return isConnected;
 }
 
-DeviceStatus NetworkModule::getDeviceStatus()
+bool NetworkModule::checkHubConnection()
 {
-	if (checkHubConnection(Hub::MAIN_HUB) && checkHubConnection(Hub::SCANNER_HUB))
-	{
-		return DeviceStatus::ACTIVE;
-	}
-	else if (checkHubConnection(Hub::MAIN_HUB))
-	{
-		return DeviceStatus::PASSIVE;
-	}
-	else
-	{
-		return DeviceStatus::POWEROFF;
-	}
-}
-
-HubList NetworkModule::getConnectedHubs() const
-{
-	HubList list;
-	std::copy(this->connectedHubs.hubs.begin(), this->connectedHubs.hubs.begin() + this->connectedHubs.count, list.hubs.begin());
-	list.count = this->connectedHubs.count;
-	return list;
-}
-
-bool NetworkModule::checkHubConnection(Hub hub)
-{
-	return this->connectedHubs.hubs[hub].isConnected();
+	return hub.isConnected();
 }
 
 void NetworkModule::sendAirQualityData(AirQuality airQuality)
@@ -95,10 +71,10 @@ void NetworkModule::sendAirQualityData(AirQuality airQuality)
 	http.end();
 }
 
-void NetworkModule::onRequest(const Hub hub, const char *request, const Action callback)
+void NetworkModule::onRequest(const char *request, const Action callback)
 {
-	this->connectedHubs.hubs[hub].onEvent([this, callback, request](WStype_t type, uint8_t *payload, size_t length)
-										  {
+	hub.onEvent([this, callback, request](WStype_t type, uint8_t *payload, size_t length)
+				{
 		switch (type) {
 		case WStype_TEXT:
 			if (strcmp((const char *)payload, request) == 0) {
@@ -110,7 +86,7 @@ void NetworkModule::onRequest(const Hub hub, const char *request, const Action c
 		} });
 }
 
-bool NetworkModule::connectToHub(const Hub hub)
+bool NetworkModule::connectToHub()
 {
 	if (!checkWifiConnection())
 	{
@@ -118,9 +94,9 @@ bool NetworkModule::connectToHub(const Hub hub)
 		return false;
 	}
 
-	this->connectedHubs.hubs[hub].begin(HOST, PORT, HUB_PATHS[hub]);
-	this->connectedHubs.hubs[hub].onEvent([this](WStype_t type, uint8_t *payload, size_t length)
-										  {
+	hub.begin(HOST, PORT, "/");
+	hub.onEvent([this](WStype_t type, uint8_t *payload, size_t length)
+				{
 		switch (type) {
 		case WStype_DISCONNECTED:
 			Serial.println("WebSocket disconnected.");
@@ -135,49 +111,15 @@ bool NetworkModule::connectToHub(const Hub hub)
 			break;
 		} });
 
-	this->connectedHubs.hubs[hub].setReconnectInterval(5000);
-	this->connectedHubs.hubs[hub].loop();
+	hub.setReconnectInterval(5000);
+	hub.loop();
 
 	return true;
 }
 
-bool NetworkModule::disconnectFromHub(const Hub hub)
+bool NetworkModule::disconnectFromHub()
 {
-	this->connectedHubs.hubs[hub].disconnect();
+	hub.disconnect();
 	Serial.println("Disconnected from WebSocket hub.");
 	return true;
-}
-
-int NetworkModule::connectToAllHubs()
-{
-	for (int i = 0; i < this->connectedHubs.count; ++i)
-	{
-		connectToHub(static_cast<Hub>(i));
-	}
-	return 0;
-}
-
-int NetworkModule::disconnectFromAllHubs()
-{
-	for (int i = 0; i < this->connectedHubs.count; ++i)
-	{
-		disconnectFromHub(static_cast<Hub>(i));
-	}
-	return 0;
-}
-
-void NetworkModule::changeToActiveMode()
-{
-	if (checkHubConnection(Hub::SCANNER_HUB))
-		return;
-
-	connectToHub(Hub::SCANNER_HUB);
-}
-
-void NetworkModule::changeToPassiveMode()
-{
-	if (!checkHubConnection(Hub::SCANNER_HUB))
-		return;
-
-	disconnectFromHub(Hub::SCANNER_HUB);
 }

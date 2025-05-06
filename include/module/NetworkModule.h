@@ -5,18 +5,14 @@
 #include <WebSocketsClient.h>
 #include <ESP8266HTTPClient.h>
 
-#include <enum/Hubs.h>
 #include <data/AirQuality.h>
 #include <module/AirQualityModule.h>
 #include <enum/DeviceStatus.h>
-#include <data/HubList.h>
 
 #define HOST "localhost"
 #define PORT 5000
 
 #define POST_AIR_QUALITY_REQUEST "http://localhost:5000/api/AirQuality"
-
-constexpr const char *HUB_PATHS[] = {"main-hub", "sensor-hub"};
 
 class NetworkModule
 {
@@ -24,27 +20,21 @@ private:
 	const char *SSID;
 	const char *password;
 	bool isWifiConnected;
-	HubList connectedHubs;
 	DeviceStatus status;
+	WebSocketsClient hub;
 
-	int connectToAllHubs();
-	int disconnectFromAllHubs();
-	bool connectToHub(const Hub hub);
-	bool disconnectFromHub(const Hub hub);
+	bool connectToHub();
+	bool disconnectFromHub();
 	bool connectToWifi();
 
 public:
 	NetworkModule(const char *SSID, const char *password);
 	~NetworkModule();
 
-	DeviceStatus getDeviceStatus();
 	bool checkWifiConnection();
-	HubList getConnectedHubs() const;
-	bool checkHubConnection(const Hub Hub);
+	bool checkHubConnection();
 	void sendAirQualityData(const AirQuality airQualityData);
-	void changeToActiveMode();
-	void changeToPassiveMode();
-	void onRequest(const Hub hub, const char *request, const Action callback);
+	void onRequest(const char *request, const Action callback);
 };
 
 #endif

@@ -9,19 +9,22 @@
 #define WIFI_SSID "Nabat"
 #define WIFI_PASSWORD "Nabat1960"
 
-#define DHT_PIN 5	// D5
-#define MQ135_PIN 2 // A0
-#define MQ5_PIN 2	// A0
-#define MQ7_PIN 2	// A0
-#define MUX_OUT 2	// A0
-#define MUX_IN1 20	// D1
-#define MUX_IN2 19	// D2
+#define MUX_OUT 2  // A0
+#define MUX_IN1 20 // D1
+#define MUX_IN2 19 // D2
+
+#define DHT_PIN 5			// D5
+#define MQ135_PIN MUX_OUT	// A0
+#define MQ5_PIN MUX_OUT		// A0
+#define MQ7_PIN MUX_OUT		// A0
+#define MQ7_INTERRUPT_PIN 4 // D0
 
 NetworkModule *netModule;
 AirQualityModule *airQualityModule;
 
-void onActivate();
-void onPassive();
+void IRAM_ATTR onActivate();
+void IRAM_ATTR onPassive();
+void IRAM_ATTR sendAirQuality();
 
 void setup()
 {
@@ -30,22 +33,14 @@ void setup()
 	auto dht = new DHTSensor(DHT_PIN);
 	auto mq135 = new MQ135Sensor(MQ135_PIN);
 	auto mq5 = new MQ5Sensor(MQ5_PIN);
-	auto mq7 = new MQ7Sensor(MQ7_PIN);
+	auto mq7 = new MQ7Sensor(MQ7_PIN, MQ7_INTERRUPT_PIN);
 
 	airQualityModule = new AirQualityModule(dht, mq135, mq5, mq7, MUX_IN1, MUX_IN2);
 
-	bool isMainHubConnected = netModule->checkHubConnection(Hub::MAIN_HUB);
-	bool isSensorHubConnected = netModule->checkHubConnection(Hub::SCANNER_HUB);
-
-	if (isMainHubConnected)
+	if (netModule->checkHubConnection())
 	{
-		netModule->onRequest(Hub::MAIN_HUB, "/active", onActivate);
-		netModule->onRequest(Hub::MAIN_HUB, "/passive", onPassive);
-	}
-
-	if (isSensorHubConnected)
-	{
-		netModule->onRequest(Hub::SCANNER_HUB, "/", sendAirQuality);
+		netModule->onRequest("/active", onActivate);
+		netModule->onRequest("/passive", onPassive);
 	}
 
 	airQualityModule->onRisingEdge(sendAirQuality);
@@ -69,17 +64,17 @@ int main()
 	return 0;
 }
 
-void onActivate()
+void IRAM_ATTR onActivate()
 {
-	netModule->changeToActiveMode();
+	airQualityModule->changeStatus(DeviceStatus::ACTIVE);
 }
 
-void onPassive()
+void IRAM_ATTR onPassive()
 {
-	netModule->changeToPassiveMode();
+	airQualityModule->changeStatus(DeviceStatus::PASSIVE);
 }
 
-void sendAirQuality()
+void IRAM_ATTR sendAirQuality()
 {
 	auto data = airQualityModule->getAirQuality();
 	netModule->sendAirQualityData(data);
