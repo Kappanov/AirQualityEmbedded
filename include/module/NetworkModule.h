@@ -29,16 +29,16 @@ private:
 	DeviceStatus status;
 	EventActionList eventActions;
 
-	bool connectToHub(const Hub hub);
-	bool disconnectFromHub(const Hub hub);
 	int connectToAllHubs();
 	int disconnectFromAllHubs();
+	bool connectToHub(const Hub hub);
+	bool disconnectFromHub(const Hub hub);
+	bool connectToWifi();
 
 public:
 	NetworkModule(const char *SSID, const char *password);
 	~NetworkModule();
 
-	bool connectToWifi();
 	DeviceStatus getDeviceStatus();
 	bool checkWifiConnection();
 	HubList getConnectedHubs() const;

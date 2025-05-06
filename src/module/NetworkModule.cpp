@@ -4,6 +4,13 @@ NetworkModule::NetworkModule(const char *SSID, const char *password)
 	: SSID(SSID), password(password)
 {
 	Serial.println("NetworkModule created");
+	if (!connectToWifi())
+	{
+		Serial.println("Failed to connect Wi-Fi");
+		return;
+	}
+
+	connectToAllHubs();
 }
 
 NetworkModule::~NetworkModule()
@@ -131,7 +138,6 @@ bool NetworkModule::connectToHub(const Hub hub)
 	this->connectedHubs.hubs[hub].setReconnectInterval(5000);
 	this->connectedHubs.hubs[hub].loop();
 
-	// Assuming connection is successful if no errors occur
 	return true;
 }
 
