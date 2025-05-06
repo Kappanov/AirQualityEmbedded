@@ -28,6 +28,8 @@ void IRAM_ATTR sendAirQuality();
 
 void setup()
 {
+	Serial.begin(115200);
+	Serial.println("Start setup");
 	netModule = new NetworkModule(WIFI_SSID, WIFI_PASSWORD);
 
 	auto dht = new DHTSensor(DHT_PIN);
@@ -37,13 +39,18 @@ void setup()
 
 	airQualityModule = new AirQualityModule(dht, mq135, mq5, mq7, MUX_IN1, MUX_IN2);
 
-	if (netModule->checkHubConnection())
+	bool isHubConnected = netModule->checkHubConnection();
+	Serial.printf("Is hub connected: %s\n", isHubConnected ? "true" : "false");
+
+	if (isHubConnected)
 	{
 		netModule->onRequest("/active", onActivate);
 		netModule->onRequest("/passive", onPassive);
 	}
 
 	airQualityModule->onRisingEdge(sendAirQuality);
+	airQualityModule->onSendingData(sendAirQuality);
+	Serial.println("End setup");
 }
 
 void loop()

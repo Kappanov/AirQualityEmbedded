@@ -5,6 +5,7 @@
 MQ5Sensor::MQ5Sensor(uint8_t pin) : pin(pin)
 {
 	pinMode(pin, INPUT);
+	Serial.println("MQ5Sensor created");
 }
 
 MQ5SensorData MQ5Sensor::readSensor()

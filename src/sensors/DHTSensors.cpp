@@ -5,6 +5,8 @@ DHTSensor::DHTSensor(uint8_t pin) : pin(pin)
 	pinMode(pin, INPUT);
 	dht = new DHT(pin, DHT11);
 	dht->begin();
+
+	Serial.println("DHTSensor created");
 }
 
 DHTSensorData DHTSensor::readSensor()

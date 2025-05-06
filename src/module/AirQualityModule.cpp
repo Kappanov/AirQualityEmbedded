@@ -13,6 +13,8 @@ AirQualityModule::AirQualityModule(
 
 	sendingDataTimer.attach_ms(SENDING_DATA_INTERVAL_MS, callbackForSendingData);
 	status = DeviceStatus::ACTIVE;
+
+	Serial.println("AirQualityModule created");
 }
 
 AirQuality AirQualityModule::getAirQuality()

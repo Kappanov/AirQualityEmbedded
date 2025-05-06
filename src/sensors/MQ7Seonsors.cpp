@@ -4,6 +4,7 @@
 MQ7Sensor::MQ7Sensor(uint8_t pin, uint8_t interruptPin) : pin(pin), interruptPin(interruptPin)
 {
 	pinMode(pin, INPUT);
+	Serial.println("MQ7Sensor created");
 }
 
 float MQ7Sensor::readSensor()

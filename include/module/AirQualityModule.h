@@ -10,9 +10,9 @@
 #include <enum/DeviceStatus.h>
 
 #include <sensors/DHTSensor.h>
-#include <sensors/MQ135Sensor.h>
 #include <sensors/MQ5Sensor.h>
 #include <sensors/MQ7Sensor.h>
+#include <sensors/MQ135Sensor.h>
 
 #define SENDING_DATA_INTERVAL_MS 60 * 1000 // минута
 

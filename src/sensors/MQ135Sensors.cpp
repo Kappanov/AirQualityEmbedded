@@ -5,6 +5,7 @@
 MQ135Sensor::MQ135Sensor(uint8_t pin) : pin(pin)
 {
 	pinMode(pin, INPUT);
+	Serial.println("MQ135Sensor created");
 }
 
 MQ135SensorData MQ135Sensor::readSensor()

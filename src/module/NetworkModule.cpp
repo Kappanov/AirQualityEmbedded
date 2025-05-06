@@ -9,8 +9,16 @@ NetworkModule::NetworkModule(const char *SSID, const char *password)
 		Serial.println("Failed to connect Wi-Fi");
 		return;
 	}
-
-	connectToHub();
+	Serial.println("WiFi success connected");
+	if (connectToHub())
+	{
+		Serial.println("Successfully connected to hub.");
+	}
+	else
+	{
+		Serial.println("Failed to connect to hub.");
+		status = DeviceStatus::POWEROFF;
+	}
 }
 
 NetworkModule::~NetworkModule()
@@ -53,7 +61,8 @@ void NetworkModule::sendAirQualityData(AirQuality airQuality)
 		return;
 	}
 	HTTPClient http;
-	http.begin(POST_AIR_QUALITY_REQUEST);
+	WiFiClient wifiClient;
+	http.begin(wifiClient, POST_AIR_QUALITY_REQUEST);
 	http.addHeader("Content-Type", "application/json");
 
 	String payload = airQuality.toJson();
@@ -88,6 +97,8 @@ void NetworkModule::onRequest(const char *request, const Action callback)
 
 bool NetworkModule::connectToHub()
 {
+	Serial.println("Try connect to hub");
+
 	if (!checkWifiConnection())
 	{
 		Serial.println("WiFi not connected. Cannot connect to hub.");
@@ -97,23 +108,41 @@ bool NetworkModule::connectToHub()
 	hub.begin(HOST, PORT, "/");
 	hub.onEvent([this](WStype_t type, uint8_t *payload, size_t length)
 				{
-		switch (type) {
-		case WStype_DISCONNECTED:
-			Serial.println("WebSocket disconnected.");
-			break;
-		case WStype_CONNECTED:
-			Serial.println("WebSocket connected.");
-			break;
-		case WStype_TEXT:
-			Serial.printf("WebSocket message: %s\n", payload);
-			break;
-		default:
-			break;
-		} });
+        switch (type) {
+            case WStype_DISCONNECTED:
+                Serial.println("WebSocket disconnected.");
+                break;
+            case WStype_CONNECTED:
+                Serial.println("WebSocket connected.");
+                break;
+            case WStype_TEXT:
+                Serial.printf("WebSocket message: %s\n", payload);
+                break;
+            default:
+                break;
+        } });
 
+	// 3. Ожидание подключения с таймаутом
+	const unsigned long timeout = 10000; // 10 секунд
+	const unsigned long startTime = millis();
+
+	while (!hub.isConnected())
+	{
+		hub.loop();
+
+		if (millis() - startTime > timeout)
+		{
+			Serial.println("Connection to hub timed out!");
+			return false;
+		}
+
+		delay(100);
+	}
+
+	// 4. Установка интервала переподключения
 	hub.setReconnectInterval(5000);
-	hub.loop();
 
+	Serial.println("Successfully connected to hub");
 	return true;
 }
 
