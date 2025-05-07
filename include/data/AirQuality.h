@@ -14,7 +14,7 @@ struct AirQuality
 	float coPpm = 0.0f;		  // Угарный газ (CO) в ppm
 	time_t timestamp = 0;	  // Временная метка
 
-	const char *toJson();
+	const char *toJson() const;
 };
 
 #endif

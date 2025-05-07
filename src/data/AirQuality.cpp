@@ -4,7 +4,7 @@
 #include <cstring> // для strcpy
 #include <cstdlib> // для malloc/free
 
-const char *AirQuality::toJson()
+const char *AirQuality::toJson() const
 {
 	static char jsonBuffer[256];
 

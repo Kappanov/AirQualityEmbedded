@@ -1,6 +1,4 @@
-#include <Arduino.h>
 #include <sensors/MQ5Sensor.h>
-#include <data/MQ5SensorData.h>
 
 MQ5Sensor::MQ5Sensor(uint8_t pin) : pin(pin)
 {
@@ -11,12 +9,19 @@ MQ5Sensor::MQ5Sensor(uint8_t pin) : pin(pin)
 MQ5SensorData MQ5Sensor::readSensor()
 {
 	int rawValue = analogRead(pin);
-	float voltage = rawValue * (5.0 / 1023.0);
+	float voltage = rawValue * (3.3 / 1023.0); // ESP8266 с делителем
 	MQ5SensorData data;
-	data.carbonMonoxide = voltage * 0.2; // Example conversion factor
-	data.hydrogen = voltage * 0.3;		 // Example conversion factor
-	data.lpg = voltage * 0.25;			 // Example conversion factor
-	data.methane = voltage * 0.15;		 // Example conversion factor
-	data.propane = voltage * 0.1;		 // Example conversion factor
+	// Упрощённые коэффициенты, замените на калибровочные
+	data.carbonMonoxide = voltage * 200; // CO
+	data.hydrogen = voltage * 300;		 // H2
+	data.lpg = voltage * 250;			 // LPG
+	data.methane = voltage * 150;		 // CH4
+	data.propane = voltage * 100;		 // C3H8
 	return data;
+}
+
+bool MQ5Sensor::isThresholdExceeded()
+{
+	MQ5SensorData data = readSensor();
+	return data.lpg > THRESHOLD;
 }

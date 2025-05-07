@@ -1,7 +1,7 @@
 #include <module/NetworkModule.h>
 
 NetworkModule::NetworkModule(const char *SSID, const char *password)
-	: SSID(SSID), password(password)
+	: SSID(SSID), password(password), isWifiConnected(false), status(DeviceStatus::POWEROFF)
 {
 	Serial.println("NetworkModule created");
 	if (!connectToWifi())
@@ -34,18 +34,21 @@ bool NetworkModule::connectToWifi()
 	while (WiFi.status() != WL_CONNECTED && attempts < 20)
 	{
 		delay(500);
+		Serial.print(".");
 		attempts++;
 	}
-	const bool isConnected = WiFi.status() == WL_CONNECTED;
-	this->isWifiConnected = isConnected;
-	return isConnected;
+	isWifiConnected = WiFi.status() == WL_CONNECTED;
+	if (isWifiConnected)
+	{
+		Serial.println("\nWiFi connected, IP: " + WiFi.localIP().toString());
+	}
+	return isWifiConnected;
 }
 
 bool NetworkModule::checkWifiConnection()
 {
-	const bool isConnected = WiFi.status() == WL_CONNECTED;
-	this->isWifiConnected = isConnected;
-	return isConnected;
+	isWifiConnected = WiFi.status() == WL_CONNECTED;
+	return isWifiConnected;
 }
 
 bool NetworkModule::checkHubConnection()
@@ -53,7 +56,7 @@ bool NetworkModule::checkHubConnection()
 	return hub.isConnected();
 }
 
-void NetworkModule::sendAirQualityData(AirQuality airQuality)
+void NetworkModule::sendAirQualityData(const AirQuality airQualityData)
 {
 	if (!checkWifiConnection())
 	{
@@ -65,7 +68,8 @@ void NetworkModule::sendAirQualityData(AirQuality airQuality)
 	http.begin(wifiClient, POST_AIR_QUALITY_REQUEST);
 	http.addHeader("Content-Type", "application/json");
 
-	String payload = airQuality.toJson();
+	String payload = airQualityData.toJson();
+	Serial.println("Sending payload: " + payload);
 	int httpResponseCode = http.POST(payload);
 
 	if (httpResponseCode > 0)
@@ -82,22 +86,26 @@ void NetworkModule::sendAirQualityData(AirQuality airQuality)
 
 void NetworkModule::onRequest(const char *request, const Action callback)
 {
-	hub.onEvent([this, callback, request](WStype_t type, uint8_t *payload, size_t length)
+	hub.onEvent([request, callback](WStype_t type, uint8_t *payload, size_t length)
 				{
-		switch (type) {
-		case WStype_TEXT:
-			if (strcmp((const char *)payload, request) == 0) {
-				callback();
-			}
-			break;
-		default:
-			break;
-		} });
+    switch (type) {
+      case WStype_TEXT:
+        if (strcmp((const char *)payload, request) == 0) {
+          callback();
+        }
+        break;
+      case WStype_DISCONNECTED:
+        Serial.println("WebSocket disconnected");
+        break;
+      case WStype_CONNECTED:
+        Serial.println("WebSocket connected");
+        break;
+    } });
 }
 
 bool NetworkModule::connectToHub()
 {
-	Serial.println("Try connect to hub");
+	Serial.println("Trying to connect to hub");
 
 	if (!checkWifiConnection())
 	{
@@ -105,45 +113,27 @@ bool NetworkModule::connectToHub()
 		return false;
 	}
 
-	hub.begin(HOST, PORT, "/");
-	hub.onEvent([this](WStype_t type, uint8_t *payload, size_t length)
-				{
-        switch (type) {
-            case WStype_DISCONNECTED:
-                Serial.println("WebSocket disconnected.");
-                break;
-            case WStype_CONNECTED:
-                Serial.println("WebSocket connected.");
-                break;
-            case WStype_TEXT:
-                Serial.printf("WebSocket message: %s\n", payload);
-                break;
-            default:
-                break;
-        } });
+	hub.begin(HOST, PORT, "/controlHub"); // SignalR хаб
+	hub.setReconnectInterval(5000);
 
-	// 3. Ожидание подключения с таймаутом
+	unsigned long startTime = millis();
 	const unsigned long timeout = 10000; // 10 секунд
-	const unsigned long startTime = millis();
-
-	while (!hub.isConnected())
+	while (!hub.isConnected() && (millis() - startTime < timeout))
 	{
 		hub.loop();
-
-		if (millis() - startTime > timeout)
-		{
-			Serial.println("Connection to hub timed out!");
-			return false;
-		}
-
 		delay(100);
 	}
 
-	// 4. Установка интервала переподключения
-	hub.setReconnectInterval(5000);
-
-	Serial.println("Successfully connected to hub");
-	return true;
+	if (hub.isConnected())
+	{
+		Serial.println("Successfully connected to hub");
+		return true;
+	}
+	else
+	{
+		Serial.println("Connection to hub timed out!");
+		return false;
+	}
 }
 
 bool NetworkModule::disconnectFromHub()
@@ -151,4 +141,13 @@ bool NetworkModule::disconnectFromHub()
 	hub.disconnect();
 	Serial.println("Disconnected from WebSocket hub.");
 	return true;
+}
+
+void NetworkModule::loop()
+{
+	hub.loop();
+	if (!isWifiConnected && checkWifiConnection())
+	{
+		connectToHub();
+	}
 }
