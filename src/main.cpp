@@ -12,12 +12,11 @@
 #define MUX_IN1 D1			 // GPIO 5
 #define MUX_IN2 D2			 // GPIO 4
 #define MUX_IN3 D3			 // GPIO 0 (добавлен для 8 каналов)
-#define DHT_PIN D7			 // GPIO 14
+#define DHT_PIN D7			 // GPIO 13
 #define MQ7_INTERRUPT_PIN D0 // GPIO 16
 
 NetworkModule *netModule;
 AirQualityModule *airQualityModule;
-DHT __dht(DHT_PIN, DHT11);
 
 void IRAM_ATTR onActivate();
 void IRAM_ATTR onPassive();
@@ -30,7 +29,7 @@ void setup()
 
 	netModule = new NetworkModule(WIFI_SSID, WIFI_PASSWORD);
 
-	auto dht = new DHTSensor(&__dht);
+	auto dht = new DHTSensor(DHT_PIN);
 	auto mq135 = new MQ135Sensor(MUX_OUT);
 	auto mq5 = new MQ5Sensor(MUX_OUT);
 	auto mq7 = new MQ7Sensor(MUX_OUT, MQ7_INTERRUPT_PIN);

@@ -12,9 +12,9 @@ MQ135SensorData MQ135Sensor::readSensor()
 	float voltage = rawValue * (3.3 / 1023.0); // ESP8266 с делителем
 	MQ135SensorData data;
 	// Упрощённые коэффициенты, замените на калибровочные
-	data.benzene = voltage * 100; // C6H6
+	data.benzene = voltage / 100; // C6H6
 	data.co2 = voltage * 200;	  // CO2
-	data.nh3 = voltage * 300;	  // NH3
+	data.nh3 = voltage * 2;	  // NH3
 	data.smoke = voltage * 400;	  // Smoke
 	return data;
 }

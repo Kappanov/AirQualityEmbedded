@@ -14,7 +14,7 @@ MQ5SensorData MQ5Sensor::readSensor()
 	// Упрощённые коэффициенты, замените на калибровочные
 	data.carbonMonoxide = voltage * 200; // CO
 	data.hydrogen = voltage * 300;		 // H2
-	data.lpg = voltage * 250;			 // LPG
+	data.lpg = voltage * 100;			 // LPG
 	data.methane = voltage * 150;		 // CH4
 	data.propane = voltage * 100;		 // C3H8
 	return data;
