@@ -10,11 +10,10 @@
 class DHTSensor
 {
 private:
-	uint8_t pin;
 	DHT *dht;
 
 public:
-	DHTSensor(uint8_t pin);
+	DHTSensor(DHT *dht);
 	DHTSensorData readSensor();
 };
 

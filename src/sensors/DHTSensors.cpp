@@ -1,9 +1,7 @@
 #include <sensors/DHTSensor.h>
 
-DHTSensor::DHTSensor(uint8_t pin) : pin(pin)
+DHTSensor::DHTSensor(DHT *dht) : dht(dht)
 {
-	pinMode(pin, INPUT);
-	dht = new DHT(pin, DHT11);
 	dht->begin();
 
 	Serial.println("DHTSensor created");

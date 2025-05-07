@@ -8,9 +8,9 @@
 #include <enum/DeviceStatus.h>
 #include <data/Action.h>
 
-#define HOST "192.168.0.25" // Замените на IP сервера
+#define HOST "192.168.0.14" // Замените на IP сервера
 #define PORT 5000
-#define POST_AIR_QUALITY_REQUEST "http://192.168.0.25:5000/api/AirQuality"
+#define POST_AIR_QUALITY_REQUEST "http://192.168.0.14:5000/api/AirQuality"
 
 class NetworkModule
 {
