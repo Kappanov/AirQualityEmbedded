@@ -58,11 +58,13 @@ void loop()
 
 void IRAM_ATTR onActivate()
 {
+	Serial.println("onActivate called");
 	airQualityModule->changeStatus(DeviceStatus::ACTIVE);
 }
 
 void IRAM_ATTR onPassive()
 {
+	Serial.println("onPassive called");
 	airQualityModule->changeStatus(DeviceStatus::PASSIVE);
 }
 

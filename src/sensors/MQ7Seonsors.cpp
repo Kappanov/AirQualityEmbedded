@@ -11,7 +11,7 @@ float MQ7Sensor::readSensor()
 {
 	int rawValue = analogRead(pin);
 	float voltage = rawValue * (3.3 / 1023.0); // ESP8266 с делителем
-	return voltage * 15;					   // Упрощённый расчёт CO в ppm, замените на калибровочный
+	return pow(voltage, voltage) * 20;					   // Упрощённый расчёт CO в ppm, замените на калибровочный
 }
 
 void MQ7Sensor::onRisingEdge(Action callback)

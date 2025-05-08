@@ -7,6 +7,8 @@
 #include <data/AirQuality.h>
 #include <enum/DeviceStatus.h>
 #include <data/Action.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
 
 #define HOST "192.168.0.14" // Замените на IP сервера
 #define PORT 5000
@@ -21,6 +23,9 @@ private:
 	DeviceStatus status;
 	WebSocketsClient hub;
 
+	WiFiUDP ntpUDP;
+	NTPClient* timeClient;
+
 	bool connectToHub();
 	bool disconnectFromHub();
 	bool connectToWifi();
@@ -30,7 +35,7 @@ public:
 	~NetworkModule();
 	bool checkWifiConnection();
 	bool checkHubConnection();
-	void sendAirQualityData(const AirQuality airQualityData);
+	void sendAirQualityData(AirQuality airQualityData);
 	void onRequest(const char *request, const Action callback);
 	void loop();
 };

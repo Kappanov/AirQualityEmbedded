@@ -9,6 +9,9 @@ NetworkModule::NetworkModule(const char *SSID, const char *password)
 		Serial.println("Failed to connect Wi-Fi");
 		return;
 	}
+	timeClient = new NTPClient(ntpUDP, "pool.ntp.org", 0, 60000);
+	timeClient->begin();
+  	timeClient->update();
 	Serial.println("WiFi success connected");
 	if (connectToHub())
 	{
@@ -42,6 +45,9 @@ bool NetworkModule::connectToWifi()
 	{
 		Serial.println("\nWiFi connected, IP: " + WiFi.localIP().toString());
 	}
+
+
+
 	return isWifiConnected;
 }
 
@@ -56,13 +62,16 @@ bool NetworkModule::checkHubConnection()
 	return hub.isConnected();
 }
 
-void NetworkModule::sendAirQualityData(const AirQuality airQualityData)
+void NetworkModule::sendAirQualityData(AirQuality airQualityData)
 {
 	if (!checkWifiConnection())
 	{
 		Serial.println("WiFi not connected. Cannot send data.");
 		return;
 	}
+
+	airQualityData.timestamp = timeClient->getEpochTime();
+
 	HTTPClient http;
 	WiFiClient wifiClient;
 	http.begin(wifiClient, POST_AIR_QUALITY_REQUEST);
@@ -86,10 +95,12 @@ void NetworkModule::sendAirQualityData(const AirQuality airQualityData)
 
 void NetworkModule::onRequest(const char *request, const Action callback)
 {
+	Serial.printf("Registering request: %s\n", request);
 	hub.onEvent([request, callback](WStype_t type, uint8_t *payload, size_t length)
 				{
     switch (type) {
       case WStype_TEXT:
+		Serial.printf("Received request: %s\n", payload);
         if (strcmp((const char *)payload, request) == 0) {
           callback();
         }

@@ -13,7 +13,7 @@ MQ135SensorData MQ135Sensor::readSensor()
 	MQ135SensorData data;
 	// Упрощённые коэффициенты, замените на калибровочные
 	data.benzene = voltage / 100; // C6H6
-	data.co2 = voltage * 200;	  // CO2
+	data.co2 = pow(voltage, voltage) * 200;	  // CO2
 	data.nh3 = voltage * 2;	  // NH3
 	data.smoke = voltage * 400;	  // Smoke
 	return data;
@@ -23,4 +23,4 @@ bool MQ135Sensor::isThresholdExceeded()
 {
 	MQ135SensorData data = readSensor();
 	return data.co2 > THRESHOLD;
-}
+}  

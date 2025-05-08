@@ -11,7 +11,7 @@
 #include <sensors/MQ7Sensor.h>
 #include <sensors/MQ135Sensor.h>
 
-#define SENDING_DATA_INTERVAL_MS 5000 // 60 секунд
+#define SENDING_DATA_INTERVAL_MS 0.5 * 60 * 1000 // 60 секунд
 
 class AirQualityModule {
 private:
